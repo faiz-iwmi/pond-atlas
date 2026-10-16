@@ -14,7 +14,7 @@ window.POND_CONFIG = {
 
   // Comments. Paste the Web app URL from your Google Apps Script deployment here.
   // Empty = comments are switched off.
-  COMMENTS_URL: "",
+  COMMENTS_URL: "https://script.google.com/macros/s/AKfycbzjgvMwOKEQz0h6Mn0GpPP2qEIIlbIleMKXLncDZM_ee62CIx1wf_GMhMZ63Xb7wn0O/exec",
 
   // Optional: a link people can follow to see the data sheet (e.g. your Google Sheet's view link).
   DATA_LINK: "",
