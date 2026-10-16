@@ -1,4 +1,5 @@
 // Pond Sensor Atlas settings — edit the text between the quotes, then save.
+// Keep each link on ONE line, with the closing quote straight after it.
 // Leave a value as "" to use the default shown in the comment.
 window.POND_CONFIG = {
 
