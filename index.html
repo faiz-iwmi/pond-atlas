@@ -432,15 +432,33 @@ async function loadData(){
 }
 
 /* ---------------- boot ---------------- */
+// If config.js didn't run (typing error) read it as text and pick out the settings anyway
+async function recoverConfig(){
+  let txt;
+  try {
+    const r = await fetch('config.js', {cache:'no-store'});
+    if (!r.ok) return 'config.js not found in the website folder — using the Excel files';
+    txt = await r.text();
+  } catch(e) { return 'config.js could not be read — using the Excel files'; }
+  let found = 0;
+  for (const k of ['METADATA_URL','RESULTS_URL','COMMENTS_URL','DATA_LINK','TITLE','SUBTITLE']) {
+    const m = txt.match(new RegExp(k + '\\s*:\\s*["\'\u201c\u201d]([\\s\\S]*?)["\'\u201c\u201d]\\s*,?\\s*(?:\\n|$)'));
+    if (m) { CFG[k] = m[1].replace(/\s+/g, k==='TITLE'||k==='SUBTITLE' ? ' ' : '').trim(); found++; }
+  }
+  console.warn('config.js has a typing error; settings were read from its text instead.');
+  if (CFG.TITLE) { document.querySelector('h1').textContent = CFG.TITLE; document.title = CFG.TITLE; }
+  if (CFG.SUBTITLE) document.querySelector('.topbar .eyebrow').textContent = CFG.SUBTITLE;
+  if (CFG.DATA_LINK) { $('btn-data').href = CFG.DATA_LINK; $('btn-data').hidden = false; }
+  return found ? '' : 'config.js has an error — using the Excel files';
+}
+
 async function boot(){
   if (CFG.TITLE) { document.querySelector('h1').textContent = CFG.TITLE; document.title = CFG.TITLE; }
   if (CFG.SUBTITLE) document.querySelector('.topbar .eyebrow').textContent = CFG.SUBTITLE;
   if (CFG.DATA_LINK) { $('btn-data').href = CFG.DATA_LINK; $('btn-data').hidden = false; }
   renderChips(); initMap();
-  if (!window.POND_CONFIG) {
-    $('data-status').textContent = 'config.js has an error — using the Excel files';
-    console.error('config.js did not load or has a typing error (often a line break inside a link). Check that every link is on one line with the closing quote straight after it.');
-  }
+  let cfgNote = '';
+  if (!window.POND_CONFIG) cfgNote = await recoverConfig();
   for (const k of ['METADATA_URL','RESULTS_URL','COMMENTS_URL','DATA_LINK']) CFG[k] = String(CFG[k]||'').trim();
   try {
     SITES = await loadData();
@@ -451,7 +469,7 @@ async function boot(){
     return;
   }
   $('data-src').classList.add('live');
-  if (window.POND_CONFIG) $('data-status').textContent = `${CFG.METADATA_URL ? 'Live from Google Sheets' : 'From Excel files'} · loaded ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+  $('data-status').textContent = cfgNote || `${CFG.METADATA_URL ? 'Live from Google Sheets' : 'From Excel files'} · loaded ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
   renderStats(); updateChipCounts(); syncMarkers(); fitToSites(); render(); updateCmpCount();
   const h = decodeURIComponent(location.hash.replace('#',''));
   if (h === 'compare') setView('compare');
