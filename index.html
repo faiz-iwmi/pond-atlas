@@ -437,6 +437,11 @@ async function boot(){
   if (CFG.SUBTITLE) document.querySelector('.topbar .eyebrow').textContent = CFG.SUBTITLE;
   if (CFG.DATA_LINK) { $('btn-data').href = CFG.DATA_LINK; $('btn-data').hidden = false; }
   renderChips(); initMap();
+  if (!window.POND_CONFIG) {
+    $('data-status').textContent = 'config.js has an error — using the Excel files';
+    console.error('config.js did not load or has a typing error (often a line break inside a link). Check that every link is on one line with the closing quote straight after it.');
+  }
+  for (const k of ['METADATA_URL','RESULTS_URL','COMMENTS_URL','DATA_LINK']) CFG[k] = String(CFG[k]||'').trim();
   try {
     SITES = await loadData();
   } catch(e) {
@@ -446,7 +451,7 @@ async function boot(){
     return;
   }
   $('data-src').classList.add('live');
-  $('data-status').textContent = `${CFG.METADATA_URL ? 'Live from Google Sheets' : 'From Excel files'} · loaded ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+  if (window.POND_CONFIG) $('data-status').textContent = `${CFG.METADATA_URL ? 'Live from Google Sheets' : 'From Excel files'} · loaded ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
   renderStats(); updateChipCounts(); syncMarkers(); fitToSites(); render(); updateCmpCount();
   const h = decodeURIComponent(location.hash.replace('#',''));
   if (h === 'compare') setView('compare');
